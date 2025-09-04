@@ -1,0 +1,5 @@
+/* Utility */
+.d-none { display: none !important; }
+/* Ensure stretched-link covers entire card area */
+.card.position-relative .stretched-link { position: static; }
+

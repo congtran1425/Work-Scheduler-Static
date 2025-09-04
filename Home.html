@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Work Scheduler </title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="style.css" rel="stylesheet">
+</head>
+<style>
+  .bg-toolbar {
+    background-color: #edeef1;
+  }
+
+  .bg-page {
+    background-color: #d1d5db;
+  }
+
+  .bg-footer {
+    background-color: #1f2937;
+  }
+
+  .btn-icon-square {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .search-pop {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 240px;
+  }
+
+  @media (max-width: 576px) {
+    .search-pop {
+      width: 180px;
+    }
+  }
+
+  .menu-pop {
+    position: absolute;
+    right: 0;
+    top: 100%;
+    transform: none;
+    width: 260px;
+    z-index: 1050;
+  }
+
+  .btn-icon-square.btn-outline-secondary {
+    background-color: #d4d6d8;
+    border-color: #d4d6d8 !important;
+    color: #343a40;
+  }
+
+  .btn-icon-square.btn-outline-secondary:hover {
+    background-color: #c9ccd0;
+    border-color: #c9ccd0 !important;
+    color: #343a40;
+  }
+
+  .navbar {
+    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Liberation Sans', sans-serif;
+  }
+
+  .navbar .navbar-brand {
+    font-weight: 600;
+    letter-spacing: 0.2px;
+  }
+
+  .navbar .nav-link {
+    font-weight: 500;
+  }
+
+  /* Highlight active card */
+  .card.active {
+    border-color: #0d6efd !important;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, .15) !important;
+  }
+
+  /* Monthly calendar */
+  .calendar .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+  }
+
+  .calendar .weekday {
+    font-size: 12px;
+    font-weight: 600;
+    color: #6b7280;
+    text-align: center;
+  }
+
+  .calendar .day {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: .375rem;
+    min-height: 64px;
+    padding: 6px;
+    font-size: 14px;
+  }
+
+  .calendar .day .num {
+    font-weight: 600;
+    color: #111827;
+  }
+
+  .calendar .day.muted {
+    background: #f9fafb;
+    color: #9ca3af;
+  }
+
+  .calendar .day.today {
+    border-color: #0d6efd;
+    box-shadow: inset 0 0 0 1px #0d6efd;
+  }
+
+  .calendar .calendar-controls .label {
+    min-width: 180px;
+    text-align: center;
+  }
+
+  .calendar .day.selected {
+    outline: 2px solid rgba(13, 110, 253, 0.35);
+    outline-offset: 1px;
+  }
+
+  @media (max-width: 767.98px) {
+    .menu-pop {
+      top: 100%;
+      transform: none;
+      right: 8px;
+      left: auto;
+      width: calc(100vw - 16px);
+      max-height: calc(100vh - 100px);
+      overflow: auto;
+    }
+  }
+</style>
+
+<body id="appPage" class="d-flex flex-column min-vh-100 bg-page">
+  <div id="appShell" class="d-flex flex-column flex-grow-1">
+    <nav class="navbar navbar-expand-md navbar-light bg-toolbar border-bottom">
+      <div class="container position-relative">
+        <ul class="navbar-nav d-none d-md-flex">
+          <li class="nav-item"><a class="nav-link" href="#">Giới thiệu</a></li>
+          <li class="nav-item"><a class="nav-link" href="#">Liên hệ</a></li>
+        </ul>
+
+        <div class="collapse menu-pop bg-white border rounded shadow-sm p-2" id="mobileNav">
+          <ul class="navbar-nav flex-column gap-1">
+            <li class="nav-item"><a class="nav-link" href="#">Giới thiệu</a></li>
+            <li class="nav-item"><a class="nav-link" href="#">Liên hệ</a></li>
+            <hr class="my-2">
+            <li class="nav-item"><a class="nav-link" href="#">Thông tin cá nhân</a></li>
+            <li class="nav-item"><a class="nav-link js-logout" href="#">Đăng xuất</a></li>
+          </ul>
+        </div>
+
+        <div class="collapse menu-pop bg-white border rounded shadow-sm p-2" id="userMenu">
+          <ul class="navbar-nav flex-column gap-1">
+            <li class="nav-item"><a class="nav-link" href="#">Thông tin cá nhân</a></li>
+            <li class="nav-item"><a class="nav-link js-logout" href="#">Đăng xuất</a></li>
+          </ul>
+        </div>
+
+        <a class="navbar-brand d-none d-md-block position-absolute start-50 translate-middle-x" href="#">Work
+          Scheduler</a>
+
+        <div class="d-flex align-items-center gap-2 d-md-none w-100">
+          <a class="navbar-brand me-auto" href="#">Work Scheduler</a>
+          <button class="btn btn-outline-secondary btn-icon-square" type="button" aria-label="Tìm kiếm"
+            data-bs-toggle="collapse" data-bs-target="#searchBar" aria-controls="searchBar" aria-expanded="false">
+            <i class="bi bi-search"></i>
+          </button>
+          <button class="navbar-toggler btn btn-outline-secondary btn-icon-square" type="button"
+            data-bs-toggle="collapse" data-bs-target="#mobileNav" aria-controls="mobileNav" aria-expanded="false"
+            aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+        </div>
+
+        <div class="ms-auto d-none d-md-flex align-items-center gap-2">
+          <button class="btn btn-outline-secondary btn-icon-square" type="button" aria-label="Tìm kiếm"
+            data-bs-toggle="collapse" data-bs-target="#searchBar" aria-controls="searchBar" aria-expanded="false">
+            <i class="bi bi-search"></i>
+          </button>
+          <button class="navbar-toggler btn btn-outline-secondary btn-icon-square d-md-inline-flex" type="button"
+            data-bs-toggle="collapse" data-bs-target="#userMenu" aria-controls="userMenu" aria-expanded="false"
+            aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+        </div>
+
+        <div class="collapse search-pop bg-white border rounded shadow-sm p-2" id="searchBar">
+          <form class="d-flex" role="search">
+            <input class="form-control form-control-sm" type="search" placeholder="Tìm kiếm..." aria-label="Search">
+          </form>
+        </div>
+      </div>
+    </nav>
+
+    <main class="flex-grow-1">
+      <div class="container py-4">
+        <div class="row g-4">
+          <div class="col-12 col-md-4">
+            <div class="p-3 border rounded bg-white">
+              <h6 class="mb-3">Chức năng chính</h6>
+              <div class="row row-cols-1 g-3">
+                <div class="col">
+                  <div id="card-my" class="card h-100 border shadow-sm position-relative">
+                    <div class="card-body d-flex align-items-start gap-3">
+                      <div class="rounded-circle d-inline-flex align-items-center justify-content-center"
+                        style="width:44px;height:44px;background:#eef2ff;color:#0d6efd;">
+                        <i class="bi bi-calendar-check"></i>
+                      </div>
+                      <div class="flex-grow-1">
+                        <h6 class="mb-1">Lịch trình của tôi</h6>
+                        <p class="mb-0 small text-muted">Xem và quản lý lịch cá nhân của bạn.</p>
+                        <a href="#my" class="stretched-link" aria-label="Mở Lịch trình của tôi"></a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col">
+                  <div id="card-shared" class="card h-100 border shadow-sm position-relative">
+                    <div class="card-body d-flex align-items-start gap-3">
+                      <div class="rounded-circle d-inline-flex align-items-center justify-content-center"
+                        style="width:44px;height:44px;background:#ecfdf5;color:#198754;">
+                        <i class="bi bi-people"></i>
+                      </div>
+                      <div class="flex-grow-1">
+                        <h6 class="mb-1">Lịch trình được chia sẻ với tôi</h6>
+                        <p class="mb-0 small text-muted">Theo dõi các lịch được người khác chia sẻ.</p>
+                        <a href="#shared" class="stretched-link" aria-label="Mở Lịch trình được chia sẻ với tôi"></a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-md-8">
+            <div id="contentPanel" class="p-3 border rounded bg-white">Đang tải nội dung...</div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="bg-footer border-top">
+      <div class="container py-3 text-center text-white">© 2025</div>
+    </footer>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    (function () {
+      if (!window.bootstrap || !bootstrap.Collapse) return;
+
+      function setupOutsideClickClose(collapseId) {
+        var panel = document.getElementById(collapseId);
+        if (!panel) return null;
+        var toggles = document.querySelectorAll('[data-bs-target="#' + collapseId + '"]');
+        var instance = new bootstrap.Collapse(panel, { toggle: false });
+
+        document.addEventListener('click', function (evt) {
+          if (!panel.classList.contains('show')) return;
+          var clickedInsidePanel = panel.contains(evt.target);
+          var clickedToggle = false;
+          toggles.forEach(function (btn) { if (btn.contains(evt.target)) clickedToggle = true; });
+          if (!clickedInsidePanel && !clickedToggle) {
+            instance.hide();
+          }
+        });
+        return instance;
+      }
+
+      setupOutsideClickClose('searchBar');
+      setupOutsideClickClose('mobileNav');
+      setupOutsideClickClose('userMenu');
+    })();
+  </script>
+  <script>
+    (function () {
+      var contentPanel = document.getElementById('contentPanel');
+      if (!contentPanel) return;
+
+      var TEMPLATES = {
+        my: (
+          '<div>' +
+                     '<div class="d-flex align-items-center justify-content-between mb-3">' +
+           '<h5 class="mb-0">Lịch trình của tôi</h5>' +
+           '</div>' +
+           '<div id="myCalendar" class="calendar mb-4">' +
+           '<div class="calendar-controls d-flex align-items-center justify-content-between mb-2">' +
+           '<button class="btn btn-sm btn-outline-secondary" data-cal="prev">Tháng trước</button>' +
+           '<div class="d-flex align-items-center gap-2">' +
+           '<button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#monthYearModal">' +
+           '<span class="label fw-semibold" data-cal="label"></span>' +
+           '</button>' +
+           '</div>' +
+           '<button class="btn btn-sm btn-outline-secondary" data-cal="next">Tháng sau</button>' +
+           '</div>' +
+           '<div class="calendar-grid" data-cal="grid"></div>' +
+           '</div>' +
+           '<div id="dayDetails" class="p-3 border rounded bg-white shadow-sm">' +
+          '<div class="d-flex align-items-center justify-content-between mb-2">' +
+          '<h6 class="mb-0" data-day-label>Chi tiết trong ngày</h6>' +
+          '<button type="button" class="btn btn-sm btn-primary" id="btnAddEvent">Thêm sự kiện</button>' +
+          '</div>' +
+          '<form id="eventForm" class="row g-2 mb-2 d-none">' +
+          '<input type="hidden" id="eventId">' +
+          '<div class="col-12 col-sm-4">' +
+          '<label class="form-label mb-1 small" for="eventTime">Thời gian</label>' +
+          '<input type="time" class="form-control form-control-sm" id="eventTime" required>' +
+          '</div>' +
+          '<div class="col-12 col-sm-8">' +
+          '<label class="form-label mb-1 small" for="eventTitle">Tiêu đề</label>' +
+          '<input type="text" class="form-control form-control-sm" id="eventTitle" placeholder="Ví dụ: Họp nhóm" required>' +
+          '</div>' +
+          '<div class="col-12">' +
+          '<label class="form-label mb-1 small" for="eventNote">Ghi chú</label>' +
+          '<input type="text" class="form-control form-control-sm" id="eventNote" placeholder="(tuỳ chọn)">' +
+          '</div>' +
+          '<div class="col-12 d-flex gap-2">' +
+          '<button type="submit" class="btn btn-sm btn-success">Lưu</button>' +
+          '<button type="button" class="btn btn-sm btn-outline-secondary" id="btnCancelEvent">Hủy</button>' +
+          '</div>' +
+          '</form>' +
+                     '<div class="border rounded p-3 bg-light small" data-day-content>Chọn một ngày trên lịch để xem chi tiết.</div>' +
+           '</div>' +
+           '</div>' +
+           '<div class="modal fade" id="monthYearModal" tabindex="-1" aria-labelledby="monthYearModalLabel" aria-hidden="true">' +
+           '<div class="modal-dialog modal-sm">' +
+           '<div class="modal-content">' +
+           '<div class="modal-header">' +
+           '<h5 class="modal-title" id="monthYearModalLabel">Chọn tháng và năm</h5>' +
+           '<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>' +
+           '</div>' +
+           '<div class="modal-body">' +
+           '<div class="d-flex align-items-center justify-content-between mb-3">' +
+           '<button class="btn btn-sm btn-outline-secondary" type="button" data-year="prev">‹</button>' +
+           '<span class="fw-semibold" data-year-display></span>' +
+           '<button class="btn btn-sm btn-outline-secondary" type="button" data-year="next">›</button>' +
+           '</div>' +
+           '<div class="row row-cols-3 g-2" data-months-grid></div>' +
+           '</div>' +
+           '</div>' +
+           '</div>' +
+           '</div>'
+        ),
+        shared: (
+          '<div>' +
+          '<div class="d-flex align-items-center justify-content-between mb-3">' +
+          '<h5 class="mb-0">Lịch trình được chia sẻ với tôi</h5>' +
+          '<div class="d-flex align-items-center gap-2">' +
+          '<input type="text" class="form-control form-control-sm" placeholder="Lọc theo người chia sẻ" style="max-width:220px">' +
+          '</div>' +
+          '</div>' +
+          '<div class="border rounded p-3 bg-light">Danh sách lịch được chia sẻ (placeholder)</div>' +
+          '</div>'
+        )
+      };
+
+      function setActiveCard(view) {
+        var myCard = document.getElementById('card-my');
+        var sharedCard = document.getElementById('card-shared');
+        if (myCard && sharedCard) {
+          myCard.classList.toggle('active', view === 'my');
+          sharedCard.classList.toggle('active', view === 'shared');
+        }
+      }
+
+      function renderView(view) {
+        var tpl = TEMPLATES[view] || TEMPLATES.my;
+        contentPanel.innerHTML = tpl;
+        setActiveCard(view);
+        if (view === 'my') mountMyCalendar();
+      }
+
+      function navigateTo(view) {
+        if (view !== 'my' && view !== 'shared') view = 'my';
+        if (location.hash !== '#' + view) {
+          location.hash = view;
+        } else {
+          renderView(view);
+        }
+      }
+
+      // Click handlers for cards
+      document.querySelectorAll('#card-my a.stretched-link, #card-shared a.stretched-link').forEach(function (a) {
+        a.addEventListener('click', function (e) {
+          e.preventDefault();
+          var hash = (this.getAttribute('href') || '#my').replace('#', '');
+          navigateTo(hash);
+        });
+      });
+
+      // Hash routing
+      window.addEventListener('hashchange', function () {
+        var view = (location.hash || '#my').replace('#', '');
+        renderView(view);
+      });
+
+      // Calendar helpers
+      var calState = (function () { var d = new Date(); return { year: d.getFullYear(), month: d.getMonth(), day: d.getDate() }; })();
+      var MONTHS_VI = ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'];
+      var WEEKDAYS_VI = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN']; // Monday-first
+
+      function mountMyCalendar() {
+        var root = document.getElementById('myCalendar');
+        if (!root) return;
+        var labelEl = root.querySelector('[data-cal="label"]');
+        var gridEl = root.querySelector('[data-cal="grid"]');
+        var midnightTimer = null;
+        var detailsRoot = document.getElementById('dayDetails');
+        var dayLabelEl = detailsRoot ? detailsRoot.querySelector('[data-day-label]') : null;
+        var dayContentEl = detailsRoot ? detailsRoot.querySelector('[data-day-content]') : null;
+        var btnAdd = document.getElementById('btnAddEvent');
+        var form = document.getElementById('eventForm');
+        var btnCancel = document.getElementById('btnCancelEvent');
+        var inputId = document.getElementById('eventId');
+        var inputTime = document.getElementById('eventTime');
+        var inputTitle = document.getElementById('eventTitle');
+        var inputNote = document.getElementById('eventNote');
+
+        function formatDateLabel(y, m, d) {
+          var date = new Date(y, m, d);
+          var weekday = ['Chủ nhật', 'Thứ hai', 'Thứ ba', 'Thứ tư', 'Thứ năm', 'Thứ sáu', 'Thứ bảy'][date.getDay()];
+          return weekday + ', ' + d + ' ' + MONTHS_VI[m] + ' ' + y;
+        }
+
+        function loadEventsKey(y, m, d) { return 'events:' + y + '-' + String(m + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0'); }
+        function readEvents(y, m, d) {
+          try { return JSON.parse(localStorage.getItem(loadEventsKey(y, m, d)) || '[]'); } catch (_) { return []; }
+        }
+        function writeEvents(y, m, d, arr) {
+          try { localStorage.setItem(loadEventsKey(y, m, d), JSON.stringify(arr)); } catch (_) { }
+        }
+
+        function renderDayDetails() {
+          if (!dayLabelEl || !dayContentEl) return;
+          dayLabelEl.textContent = formatDateLabel(calState.year, calState.month, calState.day);
+          var events = readEvents(calState.year, calState.month, calState.day).sort(function (a, b) { return (a.time || '').localeCompare(b.time || ''); });
+          if (!events.length) { dayContentEl.innerHTML = '<div>Chưa có sự kiện nào cho ngày này.</div>'; return; }
+          var html = '<div class="list-group">';
+          events.forEach(function (ev, idx) {
+            html += '<div class="list-group-item d-flex justify-content-between align-items-start">' +
+              '<div>' +
+              '<div class="fw-semibold">' + (ev.time ? ('<span class="text-muted me-2">' + ev.time + '</span>') : '') + (ev.title || '(Không tiêu đề)') + '</div>' +
+              (ev.note ? ('<div class="small text-muted">' + ev.note + '</div>') : '') +
+              '</div>' +
+              '<div class="ms-3 d-flex gap-1">' +
+              '<button class="btn btn-sm btn-outline-primary" data-ev="edit" data-idx="' + idx + '">Sửa</button>' +
+              '<button class="btn btn-sm btn-outline-danger" data-ev="del" data-idx="' + idx + '">Xóa</button>' +
+              '</div>' +
+              '</div>';
+          });
+          html += '</div>';
+          dayContentEl.innerHTML = html;
+          // bind actions
+          dayContentEl.querySelectorAll('[data-ev="edit"]').forEach(function (btn) {
+            btn.addEventListener('click', function () { var i = parseInt(this.getAttribute('data-idx'), 10); startEditEvent(i); });
+          });
+          dayContentEl.querySelectorAll('[data-ev="del"]').forEach(function (btn) {
+            btn.addEventListener('click', function () { var i = parseInt(this.getAttribute('data-idx'), 10); deleteEvent(i); });
+          });
+        }
+
+        function clearForm() { if (form) form.classList.add('d-none'); if (inputId) inputId.value = ''; if (inputTime) inputTime.value = ''; if (inputTitle) inputTitle.value = ''; if (inputNote) inputNote.value = ''; }
+        function openForm() { if (form) { form.classList.remove('d-none'); setTimeout(function () { inputTime && inputTime.focus(); }, 0); } }
+        function startAddEvent() { clearForm(); openForm(); }
+        function startEditEvent(index) {
+          var events = readEvents(calState.year, calState.month, calState.day);
+          var ev = events[index]; if (!ev) return;
+          if (inputId) inputId.value = String(index);
+          if (inputTime) inputTime.value = ev.time || '';
+          if (inputTitle) inputTitle.value = ev.title || '';
+          if (inputNote) inputNote.value = ev.note || '';
+          openForm();
+        }
+        function deleteEvent(index) {
+          var events = readEvents(calState.year, calState.month, calState.day);
+          events.splice(index, 1);
+          writeEvents(calState.year, calState.month, calState.day, events);
+          renderDayDetails();
+        }
+        function submitEvent(e) {
+          e.preventDefault();
+          var events = readEvents(calState.year, calState.month, calState.day);
+          var data = { time: (inputTime && inputTime.value) || '', title: (inputTitle && inputTitle.value) || '', note: (inputNote && inputNote.value) || '' };
+          var id = (inputId && inputId.value !== '' ? parseInt(inputId.value, 10) : -1);
+          if (id >= 0 && id < events.length) { events[id] = data; } else { events.push(data); }
+          writeEvents(calState.year, calState.month, calState.day, events);
+          clearForm();
+          renderDayDetails();
+        }
+        function render() {
+          if (!gridEl) return;
+          labelEl && (labelEl.textContent = MONTHS_VI[calState.month] + ' ' + calState.year);
+          gridEl.innerHTML = '';
+          // Weekday headers
+          WEEKDAYS_VI.forEach(function (w) { var h = document.createElement('div'); h.className = 'weekday'; h.textContent = w; gridEl.appendChild(h); });
+          var first = new Date(calState.year, calState.month, 1);
+          var startOffset = (function () { var d = first.getDay(); return (d === 0 ? 6 : d - 1); })(); // 0..6, Monday-first
+          var daysInMonth = new Date(calState.year, calState.month + 1, 0).getDate();
+          var daysInPrev = new Date(calState.year, calState.month, 0).getDate();
+          var today = new Date();
+          // 6 rows x 7 cols after header (but we already added 7 headers). We will append 42 day cells.
+          for (var i = 0; i < 42; i++) {
+            var cell = document.createElement('div'); cell.className = 'day';
+            var dayNum, muted = false, dateYear = calState.year, dateMonth = calState.month;
+            if (i < startOffset) {
+              muted = true; dayNum = daysInPrev - startOffset + i + 1;
+              if (dateMonth === 0) { dateMonth = 11; dateYear -= 1; } else { dateMonth -= 1; }
+            } else if (i < startOffset + daysInMonth) {
+              dayNum = i - startOffset + 1;
+            } else {
+              muted = true; dayNum = i - (startOffset + daysInMonth) + 1;
+              if (dateMonth === 11) { dateMonth = 0; dateYear += 1; } else { dateMonth += 1; }
+            }
+            if (muted) cell.classList.add('muted');
+            if (!muted && dayNum === today.getDate() && calState.month === today.getMonth() && calState.year === today.getFullYear()) cell.classList.add('today');
+            if (!muted && dayNum === calState.day) cell.classList.add('selected');
+            var num = document.createElement('div'); num.className = 'num'; num.textContent = String(dayNum);
+            cell.appendChild(num);
+            // data for click
+            cell.setAttribute('data-y', String(dateYear));
+            cell.setAttribute('data-m', String(dateMonth));
+            cell.setAttribute('data-d', String(dayNum));
+            gridEl.appendChild(cell);
+          }
+          renderDayDetails();
+        }
+        var prevBtn = root.querySelector('[data-cal="prev"]');
+        var nextBtn = root.querySelector('[data-cal="next"]');
+        prevBtn && prevBtn.addEventListener('click', function () { calState.month -= 1; if (calState.month < 0) { calState.month = 11; calState.year -= 1; } render(); });
+        nextBtn && nextBtn.addEventListener('click', function () { calState.month += 1; if (calState.month > 11) { calState.month = 0; calState.year += 1; } render(); });
+        // click day
+        gridEl && gridEl.addEventListener('click', function (e) {
+          var t = e.target; while (t && t !== gridEl && !t.classList.contains('day')) t = t.parentElement;
+          if (t && t.classList.contains('day')) {
+            var y = parseInt(t.getAttribute('data-y'), 10);
+            var m = parseInt(t.getAttribute('data-m'), 10);
+            var d = parseInt(t.getAttribute('data-d'), 10);
+            calState.year = y; calState.month = m; calState.day = d; render();
+          }
+        });
+        // form handlers
+        btnAdd && btnAdd.addEventListener('click', function () { startAddEvent(); });
+        btnCancel && btnCancel.addEventListener('click', function () { clearForm(); });
+        form && form.addEventListener('submit', submitEvent);
+        function scheduleMidnightRefresh() {
+          if (midnightTimer) { clearTimeout(midnightTimer); midnightTimer = null; }
+          var now = new Date();
+          var nextMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0, 0);
+          var ms = nextMidnight.getTime() - now.getTime();
+          midnightTimer = setTimeout(function () {
+            var cur = new Date();
+            calState.year = cur.getFullYear();
+            calState.month = cur.getMonth();
+            calState.day = cur.getDate();
+                    render();
+        scheduleMidnightRefresh();
+        
+        // Month/Year modal functionality
+        var modal = document.getElementById('monthYearModal');
+        var yearDisplay = modal ? modal.querySelector('[data-year-display]') : null;
+        var monthsGrid = modal ? modal.querySelector('[data-months-grid]') : null;
+        var yearPrevBtn = modal ? modal.querySelector('[data-year="prev"]') : null;
+        var yearNextBtn = modal ? modal.querySelector('[data-year="next"]') : null;
+        
+        var modalYear = calState.year;
+        
+        function renderMonthYearModal() {
+          if (!yearDisplay || !monthsGrid) return;
+          
+          yearDisplay.textContent = modalYear;
+          monthsGrid.innerHTML = '';
+          
+          MONTHS_VI.forEach(function(month, index) {
+            var monthBtn = document.createElement('button');
+            monthBtn.className = 'btn btn-outline-secondary btn-sm';
+            monthBtn.textContent = month.replace('Tháng ', '');
+            monthBtn.setAttribute('data-month', index);
+            
+            if (index === calState.month && modalYear === calState.year) {
+              monthBtn.classList.add('active');
+            }
+            
+            monthBtn.addEventListener('click', function() {
+              var selectedMonth = parseInt(this.getAttribute('data-month'));
+              calState.month = selectedMonth;
+              calState.year = modalYear;
+              render();
+              bootstrap.Modal.getInstance(modal).hide();
+            });
+            
+            monthsGrid.appendChild(monthBtn);
+          });
+        }
+        
+        if (yearPrevBtn) {
+          yearPrevBtn.addEventListener('click', function() {
+            modalYear--;
+            renderMonthYearModal();
+          });
+        }
+        
+        if (yearNextBtn) {
+          yearNextBtn.addEventListener('click', function() {
+            modalYear++;
+            renderMonthYearModal();
+          });
+        }
+        
+        if (modal) {
+          modal.addEventListener('show.bs.modal', function() {
+            modalYear = calState.year;
+            renderMonthYearModal();
+          });
+        }
+      }, ms);
+        }
+        render();
+        scheduleMidnightRefresh();
+      }
+
+      // Initial render
+      renderView((location.hash || '#my').replace('#', ''));
+    })();
+  </script>
+  <script src="script.js"></script>
+</body>
+
+</html>
